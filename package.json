@@ -20,8 +20,14 @@
     "type": "git",
     "url": "git+https://github.com/Basement2/ray-marching.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ray-marching",
+    "webgl",
+    "glsl",
+    "shader",
+    "web-components"
+  ],
+  "author": "Yuki Teraoka",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Basement2/ray-marching/issues"

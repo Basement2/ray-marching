@@ -2,6 +2,17 @@
 
 Embedding ray marching in html files only
 
+## Install
+
+From NPM
+```shell
+npm i ray-marching
+```
+or CDN
+```html
+<script src="https://unpkg.com/ray-marching@1.0.0/lib/ray-marching.js"></script>
+```
+
 ## Usage
 
 ```html
