@@ -1,0 +1,38 @@
+{
+  "name": "ray-marching",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/ray-marching.js",
+  "module": "lib/ray-marching.esm.js",
+  "unpkg": "lib/ray-marching.js",
+  "types": "lib/ray-marching.d.ts",
+  "scripts": {
+    "build": "npm run build:esm && npm run build:iife",
+    "build:esm": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=lib/ray-marching.esm.js --format=esm",
+    "build:iife": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=lib/ray-marching.js --format=iife",
+    "dev:iife": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=docs/ray-marching.js --format=iife --watch",
+    "types": "tsc -d --emitDeclarationOnly"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Basement2/ray-marching.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Basement2/ray-marching/issues"
+  },
+  "homepage": "https://github.com/Basement2/ray-marching#readme",
+  "devDependencies": {
+    "esbuild": "^0.8.57",
+    "prettier": "^2.2.1",
+    "typescript": "^4.2.3"
+  },
+  "dependencies": {
+    "@types/resize-observer-browser": "^0.1.5"
+  }
+}

@@ -1,0 +1,144 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="./ray-marching.js"></script>
+    <style>
+      .wrap {
+        width: 50%;
+        margin: 0 auto;
+      }
+      .item {
+        position: relative;
+        margin-bottom: 200px;
+      }
+      .item::before {
+        content: "";
+        display: block;
+        padding-bottom: 100%;
+      }
+      .item__inner {
+        position: absolute;
+        inset: 0;
+      }
+      ray-marching {
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="item">
+        <div class="item__inner">
+          <ray-marching>
+            <script type="x-shader/x-fragment">
+                     /*
+              * Original shader from: https://www.shadertoy.com/view/tlKfRd
+              */
+
+                     #ifdef GL_ES
+                     precision mediump float;
+                     #endif
+
+                     // glslsandbox uniforms
+                     uniform float time;
+                     uniform vec2 resolution;
+
+                     // shadertoy emulation
+                     #define iTime time
+                     #define iResolution vec3(resolution,1.)
+
+                     // --------[ Original ShaderToy begins here ]---------- //
+                     #define R(p,a,r)mix(a*dot(p,a),p,cos(r))+sin(r)*cross(p,a)
+                     #define H(h)(cos((h)*6.3+vec3(0,23,21))*.5+.5)
+                     void mainImage(out vec4 O, vec2 C)
+                     {
+                       O=vec4(0);
+                       vec3 p,r=iResolution,
+                       d=normalize(vec3((C-.5*r.xy)/r.y,1));
+                       float g=0.,e,s,t;
+                       for(float i=0.;i<99.;++i)
+                       {
+                         p=g*d-vec3(0,-.25,1.3);
+                         p=R(p,normalize(vec3(1,8,0)),iTime*.1);
+                         s=3.;
+                         for(int i=0;i<4;++i) {
+                           s*=e=1./clamp(dot(p,p),.1,.6);
+                           p=vec3(2,4,2)-abs(abs(p)*e-vec3(3,5,1));
+                         }
+                         p = sin(p.yzx*length(sin(p)));
+                         g+=e=min(length(p.xz)-.02,abs(p.y))/s+.001;
+                         t=cos(i*i/64.),O.rgb+=mix(vec3(1),H(log(s)/5.),.5)*(t*t*t*t*t*t*t*t)/e/2e4;
+                     }
+                     }
+                     // --------[ Original ShaderToy ends here ]---------- //
+
+                     void main(void)
+                     {
+                       mainImage(gl_FragColor, gl_FragCoord.xy);
+                       gl_FragColor.a = 1.;
+                     }
+            </script>
+          </ray-marching>
+        </div>
+      </div>
+      <div class="item">
+        <div class="item__inner">
+          <ray-marching>
+            <script type="x-shader/x-fragment">
+              precision mediump float;
+
+              uniform float time;
+              uniform vec2 mouse;
+              uniform vec2 resolution;
+
+              const float PI = 3.14159265358979;
+
+              const float num = 2.0;
+
+              void main( void ) {
+
+                  vec2 pos = ( gl_FragCoord.xy / resolution.xy );
+
+                  vec3 color = vec3(0.05, 0.05, 0.2);
+
+                  float r, g, b, cl;
+
+                  cl += 0.5/abs(length(vec2(
+                  pos.x-0.5+cos(time*0.3)*0.1,
+                  pos.y-0.5+sin(time*0.3)*0.1
+                  ))-0.3);
+                  r = cl * color.x;
+                  g = cl * color.y;
+                  b = cl * color.z;
+
+                  gl_FragColor = vec4(r, g, b, 1.0 );
+              }
+            </script>
+          </ray-marching>
+        </div>
+      </div>
+      <div class="item">
+        <div class="item__inner">
+          <ray-marching>
+            <script type="x-shader/x-fragment">
+              precision mediump float;
+              uniform float time;
+              uniform vec2  mouse;
+              uniform vec2  resolution;
+
+              void main( void ) {
+                vec2 p = gl_FragCoord.xy / max(resolution.x, resolution.y);
+                gl_FragColor = vec4(p, mouse.x, 1.0);
+              }
+            </script>
+          </ray-marching>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
