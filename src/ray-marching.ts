@@ -49,10 +49,6 @@ export class RayMarching extends HTMLElement {
       this.addEventListener("mousemove", this.handleMousemove.bind(this));
 
       this.beginAt = Date.now();
-
-      console.warn(44444);
-
-      // this.render();
     }, 0);
   }
 
