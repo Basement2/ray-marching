@@ -1,6 +1,6 @@
 {
   "name": "ray-marching",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "lib/ray-marching.js",
   "module": "lib/ray-marching.esm.js",
