@@ -17,19 +17,19 @@ export class RayMarching extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
+    this.attachShadow({ mode: 'open' });
     this.isIntersecting = false;
     this.shadowRoot.innerHTML = this.template();
     // Element
-    this.$canvas = this.shadowRoot.querySelector("canvas");
+    this.$canvas = this.shadowRoot.querySelector('canvas');
     // Context
     this.gl = this.$canvas.getContext(`webgl`);
     if (this.gl === null) {
-      throw new Error("WebGL not supported.");
+      throw new Error('WebGL not supported.');
     }
   }
 
-  attributeChangedCallback() {}
+  // attributeChangedCallback() {}
 
   connectedCallback() {
     setTimeout(() => {
@@ -46,7 +46,7 @@ export class RayMarching extends HTMLElement {
       );
       this.intersectionObserver.observe(this);
 
-      this.addEventListener("mousemove", this.handleMousemove.bind(this));
+      this.addEventListener('mousemove', this.handleMousemove.bind(this));
 
       this.beginAt = Date.now();
     }, 0);
@@ -100,11 +100,11 @@ export class RayMarching extends HTMLElement {
     this.gl.useProgram(this.program);
 
     // Get location
-    this.attribLocation = this.gl.getAttribLocation(this.program, "position");
+    this.attribLocation = this.gl.getAttribLocation(this.program, 'position');
     this.uniformLocation = {
-      resolution: this.gl.getUniformLocation(this.program, "resolution"),
-      mouse: this.gl.getUniformLocation(this.program, "mouse"),
-      time: this.gl.getUniformLocation(this.program, "time"),
+      resolution: this.gl.getUniformLocation(this.program, 'resolution'),
+      mouse: this.gl.getUniformLocation(this.program, 'mouse'),
+      time: this.gl.getUniformLocation(this.program, 'time'),
     };
 
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gl.createBuffer());
@@ -187,4 +187,4 @@ export class RayMarching extends HTMLElement {
   }
 }
 
-window.customElements.define("ray-marching", RayMarching);
+window.customElements.define('ray-marching', RayMarching);
