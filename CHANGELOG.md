@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/Basement2/ray-marching/compare/v1.1.0...v1.1.1) (2021-09-22)
+
+
+### Bug Fixes
+
+* update README.md ([cafb5bb](https://github.com/Basement2/ray-marching/commit/cafb5bb30af7c4ccb1315249675245d01e43b780))
+
 # [1.1.0](https://github.com/Basement2/ray-marching/compare/v1.0.3...v1.1.0) (2021-09-22)
 
 
