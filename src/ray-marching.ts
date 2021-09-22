@@ -9,11 +9,19 @@ export class RayMarching extends HTMLElement {
     time: WebGLUniformLocation;
   };
   requestID: number;
-  time: number;
   beginAt: number;
   resizeObserver: ResizeObserver;
   intersectionObserver: IntersectionObserver;
   isIntersecting: boolean;
+
+  static get observedAttributes() {
+    return ['time'];
+  }
+
+  get time() {
+    const time = this.getAttribute('time');
+    return Number(time) || 0;
+  }
 
   constructor() {
     super();
@@ -29,7 +37,12 @@ export class RayMarching extends HTMLElement {
     }
   }
 
-  // attributeChangedCallback() {}
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === 'time' && this.isIntersecting) {
+      const time = Number(newValue) || 0;
+      this.once(time);
+    }
+  }
 
   connectedCallback() {
     setTimeout(() => {
@@ -74,7 +87,12 @@ export class RayMarching extends HTMLElement {
       cancelAnimationFrame(this.requestID);
     }
     if (!this.isIntersecting && isIntersecting) {
-      this.render();
+      const time = this.getAttribute('time');
+      if (!time) {
+        this.render();
+      } else {
+        this.once(Number(time) || 0);
+      }
     }
     this.isIntersecting = isIntersecting;
   }
@@ -168,6 +186,16 @@ export class RayMarching extends HTMLElement {
       return program;
     }
     return this.gl.getProgramInfoLog(program);
+  }
+
+  once(time: number) {
+    // Clear
+    this.gl.viewport(0, 0, this.$canvas.width, this.$canvas.height);
+    this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+    this.gl.uniform1f(this.uniformLocation.time, time);
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
   }
 
   render() {
