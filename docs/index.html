@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -6,7 +7,13 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>ray-marching.js sample</title>
+    <title>ray-marching.js - Examples</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
     <script src="./ray-marching.js?v=3"></script>
     <style>
       * {
@@ -14,47 +21,636 @@
         margin: 0;
         box-sizing: border-box;
       }
-      .wrap {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 20%));
-        width: 100%;
+      body {
+        background-color: #0c0c0e;
+        color: #a1a1aa;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 100px 24px;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 1100px;
         margin: 0 auto;
       }
-      .item {
+      header {
+        text-align: left;
+        margin-bottom: 80px;
+        max-width: 600px;
+      }
+      header h1 {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #ffffff;
+        letter-spacing: -0.5px;
+      }
+      header p {
+        color: #71717a;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+      header .badge {
+        display: inline-block;
+        border: 1px solid #27272a;
+        color: #71717a;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin-bottom: 24px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 40px;
+      }
+      .card {
+        background: #121214;
+        border: 1px solid #1f1f23;
+        border-radius: 12px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+      }
+      .card h2 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #ffffff;
+      }
+      .card p.desc {
+        color: #71717a;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+      .canvas-wrapper {
         position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+        border: 1px solid #1f1f23;
       }
-      .item::before {
-        content: '';
+      .code-toggle {
+        background: transparent;
+        border: none;
+        border-bottom: 1px dashed #27272a;
+        color: #71717a;
+        padding: 8px 0;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 500;
+        transition: color 0.15s ease, border-color 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 24px;
+        width: 100%;
+        text-align: left;
+      }
+      .code-toggle:hover {
+        color: #ffffff;
+        border-bottom-color: #52525b;
+      }
+      .code-toggle span.icon {
+        font-size: 0.65rem;
+        color: #52525b;
+      }
+      .code-container {
+        display: none;
+        background: #09090b;
+        border-radius: 8px;
+        margin-top: 16px;
+        padding: 20px;
+        border: 1px solid #1f1f23;
+      }
+      .code-container.open {
         display: block;
-        padding-bottom: 100%;
       }
-      .item__inner {
-        position: absolute;
-        inset: 0;
+      .code-container pre {
+        margin: 0;
+        overflow-x: auto;
       }
-      ray-marching {
+      .code-container code {
+        font-family: 'Fira Code', monospace;
+        font-size: 0.75rem;
+        color: #a1a1aa;
+        line-height: 1.6;
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div class="item">
-        <div class="item__inner">
-          <ray-marching>
-            <script type="x-shader/x-fragment">
-              precision mediump float;
-              uniform float time;
-              uniform vec2  mouse;
-              uniform vec2  resolution;
+    <div class="container">
+      <header>
+        <span class="badge">WebGL 2.0 Custom Element</span>
+        <h1>ray-marching.js</h1>
+        <p>
+          HTML内にフラグメントシェーダーを直接記述して、手軽にレイマーチングを描画できるカスタムWebコンポーネントです。
+        </p>
+      </header>
 
-              void main( void ) {
-                vec2 p = gl_FragCoord.xy / max(resolution.x, resolution.y);
-                gl_FragColor = vec4(p, mouse.x, 1.0);
-              }
-            </script>
-          </ray-marching>
+      <div class="grid">
+        <!-- Demo 1 -->
+        <div class="card">
+          <h2>1. Interactive Wave</h2>
+          <p class="desc">マウスの動きに追従する動的な波のグラデーションシェーダーです。レイマーチング前の基本的な疎通テストとしても有効です。</p>
+          <div class="canvas-wrapper">
+            <ray-marching>
+              <script type="x-shader/x-fragment">
+                precision mediump float;
+                uniform float time;
+                uniform vec2  mouse;
+                uniform vec2  resolution;
+
+                void main( void ) {
+                  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+                  float d = sin(length(p) * 8.0 - time * 3.0 + mouse.x * 5.0) * 0.5 + 0.5;
+                  vec3 color = vec3(0.1, 0.2, 0.8) * d + vec3(0.8, 0.1, 0.4) * (1.0 - d);
+                  color += vec3(0.0, 0.8, 0.5) * (1.0 - length(p));
+                  gl_FragColor = vec4(color, 1.0);
+                }
+              </script>
+            </ray-marching>
+          </div>
+          <button class="code-toggle">
+            <span>HTML ソースコードを表示</span>
+            <span class="icon">▼</span>
+          </button>
+          <div class="code-container">
+            <pre><code>&lt;ray-marching&gt;
+  &lt;script type="x-shader/x-fragment"&gt;
+    precision mediump float;
+    uniform float time;
+    uniform vec2  mouse;
+    uniform vec2  resolution;
+
+    void main( void ) {
+      vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+      float d = sin(length(p) * 8.0 - time * 3.0 + mouse.x * 5.0) * 0.5 + 0.5;
+      vec3 color = vec3(0.1, 0.2, 0.8) * d + vec3(0.8, 0.1, 0.4) * (1.0 - d);
+      color += vec3(0.0, 0.8, 0.5) * (1.0 - length(p));
+      gl_FragColor = vec4(color, 1.0);
+    }
+  &lt;/script&gt;
+&lt;/ray-marching&gt;</code></pre>
+          </div>
+        </div>
+
+        <!-- Demo 2 -->
+        <div class="card">
+          <h2>2. Classic 3D Spheres</h2>
+          <p class="desc">レイマーチングによる3D空間の描画。床面と球体、基本的なディフューズ照明、床に落ちるソフトシャドウを実装しています。</p>
+          <div class="canvas-wrapper">
+            <ray-marching>
+              <script type="x-shader/x-fragment">
+                precision mediump float;
+                uniform float time;
+                uniform vec2  mouse;
+                uniform vec2  resolution;
+
+                float sdSphere(vec3 p, float r) {
+                  return length(p) - r;
+                }
+                float sdPlane(vec3 p) {
+                  return p.y + 1.0;
+                }
+                float map(vec3 p) {
+                  float d1 = sdSphere(p - vec3(0.0, 0.0, 3.0 + sin(time) * 0.5), 1.0);
+                  float d2 = sdPlane(p);
+                  return min(d1, d2);
+                }
+                vec3 getNormal(vec3 p) {
+                  vec2 e = vec2(0.001, 0.0);
+                  return normalize(vec3(
+                    map(p + e.xyy) - map(p - e.xyy),
+                    map(p + e.yxy) - map(p - e.yxy),
+                    map(p + e.yyx) - map(p - e.yyx)
+                  ));
+                }
+                float getShadow(vec3 ro, vec3 rd, float mint, float maxt) {
+                  float res = 1.0;
+                  float t = mint;
+                  for(int i = 0; i < 16; i++) {
+                    float h = map(ro + rd * t);
+                    if(h < 0.001) return 0.0;
+                    res = min(res, 8.0 * h / t);
+                    t += h;
+                    if(t > maxt) break;
+                  }
+                  return res;
+                }
+                void main(void) {
+                  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+                  vec3 ro = vec3(0.0, 0.5, 0.0);
+                  vec3 rd = normalize(vec3(p, 1.5));
+                  float t = 0.0;
+                  float maxD = 20.0;
+                  vec3 col = vec3(0.05, 0.06, 0.1);
+                  for(int i = 0; i < 64; i++) {
+                    vec3 pos = ro + rd * t;
+                    float h = map(pos);
+                    if(h < 0.001 || t > maxD) break;
+                    t += h;
+                  }
+                  if(t < maxD) {
+                    vec3 pos = ro + rd * t;
+                    vec3 nor = getNormal(pos);
+                    vec3 lig = normalize(vec3(1.0, 2.0, -1.0));
+                    float dif = clamp(dot(nor, lig), 0.0, 1.0);
+                    float sha = getShadow(pos + nor * 0.01, lig, 0.01, 5.0);
+                    vec3 baseCol = (pos.y > -0.99) ? vec3(0.1, 0.7, 0.8) : vec3(0.15, 0.15, 0.2);
+                    col = baseCol * (dif * 0.8 + 0.2) * (sha * 0.7 + 0.3);
+                    col = mix(col, vec3(0.05, 0.06, 0.1), 1.0 - exp(-0.02 * t * t));
+                  }
+                  gl_FragColor = vec4(col, 1.0);
+                }
+              </script>
+            </ray-marching>
+          </div>
+          <button class="code-toggle">
+            <span>HTML ソースコードを表示</span>
+            <span class="icon">▼</span>
+          </button>
+          <div class="code-container">
+            <pre><code>&lt;ray-marching&gt;
+  &lt;script type="x-shader/x-fragment"&gt;
+    // (Classic 3D Spheres with Shadows)
+  &lt;/script&gt;
+&lt;/ray-marching&gt;</code></pre>
+          </div>
+        </div>
+
+        <!-- Demo 3 -->
+        <div class="card">
+          <h2>3. Twisted Torus</h2>
+          <p class="desc">SDF（符号付き距離関数）の変形処理。Torus形状に対してY軸に沿ったねじれ加工（Twist）を時間変化とともに適用しています。</p>
+          <div class="canvas-wrapper">
+            <ray-marching>
+              <script type="x-shader/x-fragment">
+                precision mediump float;
+                uniform float time;
+                uniform vec2  mouse;
+                uniform vec2  resolution;
+
+                mat2 rot(float a) {
+                  float c = cos(a), s = sin(a);
+                  return mat2(c, -s, s, c);
+                }
+                float sdTorus(vec3 p, vec2 t) {
+                  vec2 q = vec2(length(p.xz) - t.x, p.y);
+                  return length(q) - t.y;
+                }
+                float map(vec3 p) {
+                  p.xy *= rot(time * 0.3);
+                  p.xz *= rot(time * 0.5);
+                  float k = 2.0 * sin(time * 0.5);
+                  float c = cos(k * p.y), s = sin(k * p.y);
+                  mat2 m = mat2(c, -s, s, c);
+                  vec3 q = vec3(m * p.xz, p.y);
+                  return sdTorus(q, vec2(1.2, 0.4));
+                }
+                vec3 getNormal(vec3 p) {
+                  vec2 e = vec2(0.001, 0.0);
+                  return normalize(vec3(
+                    map(p + e.xyy) - map(p - e.xyy),
+                    map(p + e.yxy) - map(p - e.yxy),
+                    map(p + e.yyx) - map(p - e.yyx)
+                  ));
+                }
+                void main(void) {
+                  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+                  vec3 ro = vec3(0.0, 0.0, -4.0);
+                  vec3 rd = normalize(vec3(p, 1.5));
+                  float t = 0.0;
+                  float maxD = 10.0;
+                  vec3 col = vec3(0.05, 0.05, 0.08);
+                  for(int i = 0; i < 64; i++) {
+                    vec3 pos = ro + rd * t;
+                    float h = map(pos);
+                    if(h < 0.001 || t > maxD) break;
+                    t += h;
+                  }
+                  if(t < maxD) {
+                    vec3 pos = ro + rd * t;
+                    vec3 nor = getNormal(pos);
+                    vec3 lightDir = normalize(vec3(1.0, 1.0, -1.0));
+                    float diff = clamp(dot(nor, lightDir), 0.0, 1.0);
+                    float spec = pow(clamp(dot(reflect(-lightDir, nor), -rd), 0.0, 1.0), 16.0);
+                    vec3 norColor = nor * 0.5 + 0.5;
+                    vec3 baseCol = mix(vec3(0.9, 0.3, 0.2), vec3(0.2, 0.8, 0.9), norColor.y);
+                    col = baseCol * diff + vec3(1.0) * spec * 0.5;
+                    col += vec3(0.1, 0.0, 0.2) * (1.0 - diff);
+                  }
+                  gl_FragColor = vec4(col, 1.0);
+                }
+              </script>
+            </ray-marching>
+          </div>
+          <button class="code-toggle">
+            <span>HTML ソースコードを表示</span>
+            <span class="icon">▼</span>
+          </button>
+          <div class="code-container">
+            <pre><code>&lt;ray-marching&gt;
+  &lt;script type="x-shader/x-fragment"&gt;
+    // (Twisted Torus SDF implementation)
+  &lt;/script&gt;
+&lt;/ray-marching&gt;</code></pre>
+          </div>
+        </div>
+
+        <!-- Demo 4 -->
+        <div class="card">
+          <h2>4. Melting Metaballs</h2>
+          <p class="desc">有機的な融合処理。3つの球体が `Smooth Minimum (smin)` 関数によってドロドロと融合・分裂するメタボールエフェクトです。</p>
+          <div class="canvas-wrapper">
+            <ray-marching>
+              <script type="x-shader/x-fragment">
+                precision mediump float;
+                uniform float time;
+                uniform vec2  mouse;
+                uniform vec2  resolution;
+
+                float smin(float a, float b, float k) {
+                  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+                  return mix(b, a, h) - k * h * (1.0 - h);
+                }
+                float sdSphere(vec3 p, float r) {
+                  return length(p) - r;
+                }
+                float map(vec3 p) {
+                  vec3 s1 = vec3(sin(time * 1.5) * 0.8, cos(time * 1.1) * 0.4, 0.0);
+                  vec3 s2 = vec3(cos(time * 1.3) * 0.8, sin(time * 1.7) * 0.4, 0.0);
+                  vec3 s3 = vec3(0.0, sin(time * 0.9) * 0.6, cos(time * 1.2) * 0.5);
+                  float d1 = sdSphere(p - s1, 0.5);
+                  float d2 = sdSphere(p - s2, 0.45);
+                  float d3 = sdSphere(p - s3, 0.55);
+                  float blendFactor = 0.5;
+                  float d = smin(d1, d2, blendFactor);
+                  return smin(d, d3, blendFactor);
+                }
+                vec3 getNormal(vec3 p) {
+                  vec2 e = vec2(0.001, 0.0);
+                  return normalize(vec3(
+                    map(p + e.xyy) - map(p - e.xyy),
+                    map(p + e.yxy) - map(p - e.yxy),
+                    map(p + e.yyx) - map(p - e.yyx)
+                  ));
+                }
+                void main(void) {
+                  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+                  vec3 ro = vec3(0.0, 0.0, -3.0);
+                  vec3 rd = normalize(vec3(p, 1.5));
+                  float t = 0.0;
+                  float maxD = 8.0;
+                  vec3 col = vec3(0.04, 0.03, 0.06);
+                  for(int i = 0; i < 64; i++) {
+                    vec3 pos = ro + rd * t;
+                    float h = map(pos);
+                    if(h < 0.001 || t > maxD) break;
+                    t += h;
+                  }
+                  if(t < maxD) {
+                    vec3 pos = ro + rd * t;
+                    vec3 nor = getNormal(pos);
+                    vec3 lightPos = vec3(2.0, 3.0, -4.0);
+                    vec3 lightDir = normalize(lightPos - pos);
+                    float diff = clamp(dot(nor, lightDir), 0.0, 1.0);
+                    vec3 baseCol = vec3(0.85, 0.1, 0.45) * (nor.x * 0.5 + 0.5) + vec3(0.1, 0.8, 0.4) * (nor.y * 0.5 + 0.5);
+                    float spec = pow(clamp(dot(reflect(-lightDir, nor), -rd), 0.0, 1.0), 32.0);
+                    col = baseCol * (diff * 0.8 + 0.2) + vec3(1.0) * spec * 0.6;
+                    col *= clamp(0.5 + 0.5 * nor.y, 0.0, 1.0);
+                  }
+                  gl_FragColor = vec4(col, 1.0);
+                }
+              </script>
+            </ray-marching>
+          </div>
+          <button class="code-toggle">
+            <span>HTML ソースコードを表示</span>
+            <span class="icon">▼</span>
+          </button>
+          <div class="code-container">
+            <pre><code>&lt;ray-marching&gt;
+  &lt;script type="x-shader/x-fragment"&gt;
+    // (Melting Metaballs blended with smin)
+  &lt;/script&gt;
+&lt;/ray-marching&gt;</code></pre>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Toggle Script -->
+    <script>
+      // Wrap GLSL shaders inside web component markup programmatically
+      const buildMarkup = (shaderSource) => {
+        return `\x3Cray-marching\x3E
+  \x3Cscript type="x-shader/x-fragment"\x3E
+${shaderSource.split('\n').map(line => '    ' + line).join('\n')}
+  \x3C/script\x3E
+\x3C/ray-marching\x3E`;
+      };
+
+      const demo2Shader = `precision mediump float;
+uniform float time;
+uniform vec2  mouse;
+uniform vec2  resolution;
+
+float sdSphere(vec3 p, float r) {
+  return length(p) - r;
+}
+float sdPlane(vec3 p) {
+  return p.y + 1.0;
+}
+float map(vec3 p) {
+  float d1 = sdSphere(p - vec3(0.0, 0.0, 3.0 + sin(time) * 0.5), 1.0);
+  float d2 = sdPlane(p);
+  return min(d1, d2);
+}
+vec3 getNormal(vec3 p) {
+  vec2 e = vec2(0.001, 0.0);
+  return normalize(vec3(
+    map(p + e.xyy) - map(p - e.xyy),
+    map(p + e.yxy) - map(p - e.yxy),
+    map(p + e.yyx) - map(p - e.yyx)
+  ));
+}
+float getShadow(vec3 ro, vec3 rd, float mint, float maxt) {
+  float res = 1.0;
+  float t = mint;
+  for(int i = 0; i < 16; i++) {
+    float h = map(ro + rd * t);
+    if(h < 0.001) return 0.0;
+    res = min(res, 8.0 * h / t);
+    t += h;
+    if(t > maxt) break;
+  }
+  return res;
+}
+void main(void) {
+  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+  vec3 ro = vec3(0.0, 0.5, 0.0);
+  vec3 rd = normalize(vec3(p, 1.5));
+  float t = 0.0;
+  float maxD = 20.0;
+  vec3 col = vec3(0.05, 0.06, 0.1);
+  for(int i = 0; i < 64; i++) {
+    vec3 pos = ro + rd * t;
+    float h = map(pos);
+    if(h < 0.001 || t > maxD) break;
+    t += h;
+  }
+  if(t < maxD) {
+    vec3 pos = ro + rd * t;
+    vec3 nor = getNormal(pos);
+    vec3 lig = normalize(vec3(1.0, 2.0, -1.0));
+    float dif = clamp(dot(nor, lig), 0.0, 1.0);
+    float sha = getShadow(pos + nor * 0.01, lig, 0.01, 5.0);
+    vec3 baseCol = (pos.y > -0.99) ? vec3(0.1, 0.7, 0.8) : vec3(0.15, 0.15, 0.2);
+    col = baseCol * (dif * 0.8 + 0.2) * (sha * 0.7 + 0.3);
+    col = mix(col, vec3(0.05, 0.06, 0.1), 1.0 - exp(-0.02 * t * t));
+  }
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+      const demo3Shader = `precision mediump float;
+uniform float time;
+uniform vec2  mouse;
+uniform vec2  resolution;
+
+mat2 rot(float a) {
+  float c = cos(a), s = sin(a);
+  return mat2(c, -s, s, c);
+}
+float sdTorus(vec3 p, vec2 t) {
+  vec2 q = vec2(length(p.xz) - t.x, p.y);
+  return length(q) - t.y;
+}
+float map(vec3 p) {
+  p.xy *= rot(time * 0.3);
+  p.xz *= rot(time * 0.5);
+  float k = 2.0 * sin(time * 0.5);
+  float c = cos(k * p.y), s = sin(k * p.y);
+  mat2 m = mat2(c, -s, s, c);
+  vec3 q = vec3(m * p.xz, p.y);
+  return sdTorus(q, vec2(1.2, 0.4));
+}
+vec3 getNormal(vec3 p) {
+  vec2 e = vec2(0.001, 0.0);
+  return normalize(vec3(
+    map(p + e.xyy) - map(p - e.xyy),
+    map(p + e.yxy) - map(p - e.yxy),
+    map(p + e.yyx) - map(p - e.yyx)
+  ));
+}
+void main(void) {
+  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+  vec3 ro = vec3(0.0, 0.0, -4.0);
+  vec3 rd = normalize(vec3(p, 1.5));
+  float t = 0.0;
+  float maxD = 10.0;
+  vec3 col = vec3(0.05, 0.05, 0.08);
+  for(int i = 0; i < 64; i++) {
+    vec3 pos = ro + rd * t;
+    float h = map(pos);
+    if(h < 0.001 || t > maxD) break;
+    t += h;
+  }
+  if(t < maxD) {
+    vec3 pos = ro + rd * t;
+    vec3 nor = getNormal(pos);
+    vec3 lightDir = normalize(vec3(1.0, 1.0, -1.0));
+    float diff = clamp(dot(nor, lightDir), 0.0, 1.0);
+    float spec = pow(clamp(dot(reflect(-lightDir, nor), -rd), 0.0, 1.0), 16.0);
+    vec3 norColor = nor * 0.5 + 0.5;
+    vec3 baseCol = mix(vec3(0.9, 0.3, 0.2), vec3(0.2, 0.8, 0.9), norColor.y);
+    col = baseCol * diff + vec3(1.0) * spec * 0.5;
+    col += vec3(0.1, 0.0, 0.2) * (1.0 - diff);
+  }
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+      const demo4Shader = `precision mediump float;
+uniform float time;
+uniform vec2  mouse;
+uniform vec2  resolution;
+
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+float sdSphere(vec3 p, float r) {
+  return length(p) - r;
+}
+float map(vec3 p) {
+  vec3 s1 = vec3(sin(time * 1.5) * 0.8, cos(time * 1.1) * 0.4, 0.0);
+  vec3 s2 = vec3(cos(time * 1.3) * 0.8, sin(time * 1.7) * 0.4, 0.0);
+  vec3 s3 = vec3(0.0, sin(time * 0.9) * 0.6, cos(time * 1.2) * 0.5);
+  float d1 = sdSphere(p - s1, 0.5);
+  float d2 = sdSphere(p - s2, 0.45);
+  float d3 = sdSphere(p - s3, 0.55);
+  float blendFactor = 0.5;
+  float d = smin(d1, d2, blendFactor);
+  return smin(d, d3, blendFactor);
+}
+vec3 getNormal(vec3 p) {
+  vec2 e = vec2(0.001, 0.0);
+  return normalize(vec3(
+    map(p + e.xyy) - map(p - e.xyy),
+    map(p + e.yxy) - map(p - e.yxy),
+    map(p + e.yyx) - map(p - e.yyx)
+  ));
+}
+void main(void) {
+  vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+  vec3 ro = vec3(0.0, 0.0, -3.0);
+  vec3 rd = normalize(vec3(p, 1.5));
+  float t = 0.0;
+  float maxD = 8.0;
+  vec3 col = vec3(0.04, 0.03, 0.06);
+  for(int i = 0; i < 64; i++) {
+    vec3 pos = ro + rd * t;
+    float h = map(pos);
+    if(h < 0.001 || t > maxD) break;
+    t += h;
+  }
+  if(t < maxD) {
+    vec3 pos = ro + rd * t;
+    vec3 nor = getNormal(pos);
+    vec3 lightPos = vec3(2.0, 3.0, -4.0);
+    vec3 lightDir = normalize(lightPos - pos);
+    float diff = clamp(dot(nor, lightDir), 0.0, 1.0);
+    vec3 baseCol = vec3(0.85, 0.1, 0.45) * (nor.x * 0.5 + 0.5) + vec3(0.1, 0.8, 0.4) * (nor.y * 0.5 + 0.5);
+    float spec = pow(clamp(dot(reflect(-lightDir, nor), -rd), 0.0, 1.0), 32.0);
+    col = baseCol * (diff * 0.8 + 0.2) + vec3(1.0) * spec * 0.6;
+    col *= clamp(0.5 + 0.5 * nor.y, 0.0, 1.0);
+  }
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+      // Insert full component markup dynamically into containers
+      const codeContainers = document.querySelectorAll('.code-container code');
+      codeContainers[1].textContent = buildMarkup(demo2Shader);
+      codeContainers[2].textContent = buildMarkup(demo3Shader);
+      codeContainers[3].textContent = buildMarkup(demo4Shader);
+
+      // Handle Toggles
+      document.querySelectorAll('.code-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+          const container = button.nextElementSibling;
+          container.classList.toggle('open');
+          const isOpen = container.classList.contains('open');
+          button.querySelector('span:first-child').textContent = isOpen ? 'HTML ソースコードを非表示' : 'HTML ソースコードを表示';
+          button.querySelector('.icon').textContent = isOpen ? '▲' : '▼';
+        });
+      });
+    </script>
   </body>
 </html>

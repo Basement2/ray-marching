@@ -8,7 +8,7 @@
   "types": "lib/ray-marching.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build && npm run types",
-    "build": "npm run build:esm && npm run build:iife",
+    "build": "npm run build:esm && npm run build:iife && esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=docs/ray-marching.js --format=iife",
     "build:esm": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=lib/ray-marching.esm.js --format=esm",
     "build:iife": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=lib/ray-marching.js --format=iife",
     "dev:iife": "esbuild src/ray-marching.ts --bundle --minify --sourcemap --outfile=docs/ray-marching.js --format=iife --watch",
