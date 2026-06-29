@@ -1,24 +1,25 @@
 export class RayMarching extends HTMLElement {
   $canvas: HTMLCanvasElement;
-  gl: WebGLRenderingContext;
-  program: WebGLProgram;
-  attribLocation: number;
-  uniformLocation: {
-    resolution: WebGLUniformLocation;
-    mouse: WebGLUniformLocation;
-    time: WebGLUniformLocation;
+  gl: WebGLRenderingContext | WebGL2RenderingContext;
+  program?: WebGLProgram;
+  attribLocation?: number;
+  uniformLocation?: {
+    resolution: WebGLUniformLocation | null;
+    mouse: WebGLUniformLocation | null;
+    time: WebGLUniformLocation | null;
   };
-  requestID: number;
-  beginAt: number;
-  resizeObserver: ResizeObserver;
-  intersectionObserver: IntersectionObserver;
+  requestID?: number;
+  beginAt?: number;
+  resizeObserver?: ResizeObserver;
+  intersectionObserver?: IntersectionObserver;
+  childObserver?: MutationObserver;
   isIntersecting: boolean;
 
-  static get observedAttributes() {
+  static get observedAttributes(): string[] {
     return ['time'];
   }
 
-  get time() {
+  get time(): number {
     const time = this.getAttribute('time');
     return Number(time) || 0;
   }
@@ -27,24 +28,37 @@ export class RayMarching extends HTMLElement {
     super();
     this.attachShadow({ mode: 'open' });
     this.isIntersecting = false;
-    this.shadowRoot.innerHTML = this.template();
+    if (this.shadowRoot) {
+      this.shadowRoot.innerHTML = this.template();
+    }
     // Element
-    this.$canvas = this.shadowRoot.querySelector('canvas');
-    // Context
-    this.gl = this.$canvas.getContext(`webgl`);
-    if (this.gl === null) {
+    const canvas = this.shadowRoot?.querySelector('canvas');
+    if (!canvas) {
+      throw new Error('Canvas element not found in shadow root.');
+    }
+    this.$canvas = canvas;
+    // Context (WebGL 2.0 with WebGL 1.0 fallback)
+    const gl = (this.$canvas.getContext('webgl2') ||
+      this.$canvas.getContext('webgl')) as
+      WebGLRenderingContext | WebGL2RenderingContext | null;
+    if (gl === null) {
       throw new Error('WebGL not supported.');
     }
+    this.gl = gl;
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null,
+  ): void {
     if (name === 'time' && this.isIntersecting) {
       const time = Number(newValue) || 0;
       this.once(time);
     }
   }
 
-  connectedCallback() {
+  connectedCallback(): void {
     setTimeout(() => {
       this.setupShader();
 
@@ -55,7 +69,7 @@ export class RayMarching extends HTMLElement {
         this.handleIntersection.bind(this),
         {
           root: null,
-        }
+        },
       );
       this.intersectionObserver.observe(this);
 
@@ -65,26 +79,39 @@ export class RayMarching extends HTMLElement {
     }, 0);
   }
 
-  disconnectedCallback() {
-    cancelAnimationFrame(this.requestID);
-    this.resizeObserver.unobserve(this);
-    this.intersectionObserver.unobserve(this);
+  disconnectedCallback(): void {
+    if (this.requestID !== undefined) {
+      cancelAnimationFrame(this.requestID);
+    }
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+    }
+    if (this.childObserver) {
+      this.childObserver.disconnect();
+    }
   }
 
-  handleResize(entries) {
+  handleResize(entries: ResizeObserverEntry[]): void {
     const { width, height } = entries[0].contentRect;
     this.$canvas.width = width / 2;
     this.$canvas.height = height / 2;
-    this.gl.uniform2fv(this.uniformLocation.resolution, [
-      this.$canvas.width,
-      this.$canvas.height,
-    ]);
+    if (this.gl && this.uniformLocation) {
+      this.gl.uniform2fv(this.uniformLocation.resolution, [
+        this.$canvas.width,
+        this.$canvas.height,
+      ]);
+    }
   }
 
-  handleIntersection(entries) {
+  handleIntersection(entries: IntersectionObserverEntry[]): void {
     const isIntersecting = entries[0].isIntersecting;
     if (this.isIntersecting && !isIntersecting) {
-      cancelAnimationFrame(this.requestID);
+      if (this.requestID !== undefined) {
+        cancelAnimationFrame(this.requestID);
+      }
     }
     if (!this.isIntersecting && isIntersecting) {
       const time = this.getAttribute('time');
@@ -97,28 +124,53 @@ export class RayMarching extends HTMLElement {
     this.isIntersecting = isIntersecting;
   }
 
-  handleMousemove(e) {
+  handleMousemove(e: MouseEvent): void {
+    if (!this.gl || !this.uniformLocation) return;
     this.gl.uniform2fv(this.uniformLocation.mouse, [
       Math.max(0, e.offsetX) / this.clientWidth,
       (this.clientHeight - e.offsetY) / this.clientHeight,
     ]);
   }
 
-  setupShader() {
+  setupShader(): void {
     const fShaderScript = this.querySelector('[type="x-shader/x-fragment"]');
+    if (!fShaderScript) {
+      if (!this.childObserver) {
+        this.childObserver = new MutationObserver(() => {
+          const script = this.querySelector('[type="x-shader/x-fragment"]');
+          if (script) {
+            this.childObserver?.disconnect();
+            this.setupShader();
+          }
+        });
+        this.childObserver.observe(this, { childList: true });
+      }
+      return;
+    }
     const vs = this.createShader(
       this.gl.VERTEX_SHADER,
-      `attribute vec3 position;void main(){gl_Position=vec4(position,1.);}`
+      `attribute vec3 position;void main(){gl_Position=vec4(position,1.);}`,
     );
     const fs = this.createShader(
       this.gl.FRAGMENT_SHADER,
-      fShaderScript.textContent
+      fShaderScript.textContent || '',
     );
-    this.program = this.createProgramObject(vs, fs);
+    if (!vs || !fs) {
+      return;
+    }
+    const program = this.createProgramObject(vs, fs);
+    if (!program) {
+      return;
+    }
+    this.program = program;
     this.gl.useProgram(this.program);
 
     // Get location
     this.attribLocation = this.gl.getAttribLocation(this.program, 'position');
+    if (this.attribLocation === -1) {
+      console.error('Attribute "position" not found in shader.');
+      return;
+    }
     this.uniformLocation = {
       resolution: this.gl.getUniformLocation(this.program, 'resolution'),
       mouse: this.gl.getUniformLocation(this.program, 'mouse'),
@@ -129,7 +181,7 @@ export class RayMarching extends HTMLElement {
     this.gl.bufferData(
       this.gl.ARRAY_BUFFER,
       new Float32Array([-1, 1, 0, -1, -1, 0, 1, 1, 0, 1, -1, 0]),
-      this.gl.STATIC_DRAW
+      this.gl.STATIC_DRAW,
     );
     this.gl.enableVertexAttribArray(this.attribLocation);
     this.gl.vertexAttribPointer(
@@ -138,11 +190,11 @@ export class RayMarching extends HTMLElement {
       this.gl.FLOAT,
       false,
       0,
-      0
+      0,
     );
   }
 
-  template() {
+  template(): string {
     return `
       <style>
         :host {
@@ -164,31 +216,43 @@ export class RayMarching extends HTMLElement {
     `;
   }
 
-  createShader(type, source): WebGLShader | string {
+  createShader(type: GLenum, source: string): WebGLShader | null {
     const shader = this.gl.createShader(type);
+    if (!shader) {
+      console.error('Failed to create shader.');
+      return null;
+    }
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
     if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       return shader;
     }
-    return this.gl.getShaderInfoLog(shader);
+    console.error('Shader compile error:', this.gl.getShaderInfoLog(shader));
+    this.gl.deleteShader(shader);
+    return null;
   }
 
-  createProgramObject(vs, fs): WebGLProgram | string {
+  createProgramObject(vs: WebGLShader, fs: WebGLShader): WebGLProgram | null {
     const program = this.gl.createProgram();
+    if (!program) {
+      console.error('Failed to create program.');
+      return null;
+    }
     this.gl.attachShader(program, vs);
     this.gl.attachShader(program, fs);
     this.gl.linkProgram(program);
     this.gl.deleteShader(vs);
     this.gl.deleteShader(fs);
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-      this.gl.useProgram(program);
       return program;
     }
-    return this.gl.getProgramInfoLog(program);
+    console.error('Program link error:', this.gl.getProgramInfoLog(program));
+    this.gl.deleteProgram(program);
+    return null;
   }
 
-  once(time: number) {
+  once(time: number): void {
+    if (!this.gl || !this.uniformLocation) return;
     // Clear
     this.gl.viewport(0, 0, this.$canvas.width, this.$canvas.height);
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -198,7 +262,8 @@ export class RayMarching extends HTMLElement {
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
   }
 
-  render() {
+  render(): void {
+    if (!this.gl || !this.uniformLocation || this.beginAt === undefined) return;
     // Clear
     this.gl.viewport(0, 0, this.$canvas.width, this.$canvas.height);
     this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -207,7 +272,7 @@ export class RayMarching extends HTMLElement {
     // Sec.
     this.gl.uniform1f(
       this.uniformLocation.time,
-      (Date.now() - this.beginAt) * 0.001
+      (Date.now() - this.beginAt) * 0.001,
     );
 
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
