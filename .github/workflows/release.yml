@@ -5,6 +5,8 @@ on:
       - main
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
   id-token: write
 
 jobs:
@@ -20,6 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          registry-url: 'https://registry.npmjs.org'
       - name: Upgrade npm
         run: npm install -g npm@latest
       - name: Install dependencies
